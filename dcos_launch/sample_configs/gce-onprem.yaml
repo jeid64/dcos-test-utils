@@ -1,17 +1,18 @@
-deployment_name: gce-test1
-key_helper: true
-zone: us-west1-a
+---
+launch_config_version: 1
+deployment_name: dcos-onprem-on-gce
 platform: gce
-num_masters: 1
-num_private_agents: 0
-num_public_agents: 1
+provider: onprem
 ssh_user: dcos
-key_helper: true
-onprem_dcos_config_contents: none
-ssh_private_key: none
-ssh_port: none
-installer_url: none
-installer_port: none
-machineType: f1-micro
-sourceImage: debian-8-jessie-v20160301
-network: default
+key_helper: True
+dcos_config:
+    cluster_name: My Awesome DC/OS
+    resolvers:
+        - 8.8.4.4
+        - 8.8.8.8
+    master_discovery: static
+num_masters: 1
+num_private_agents: 2
+num_public_agents: 1
+installer_url: https://downloads.dcos.io/dcos/testing/master/dcos_generate_config.sh
+

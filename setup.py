@@ -24,6 +24,7 @@ setup(
         'botocore',
         'cerberus',
         'docopt',
+        'google-api-python-client',
         'requests',
         'retrying',
         'pyinstaller==3.2',

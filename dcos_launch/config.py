@@ -110,7 +110,16 @@ def get_validated_config(config_path: str) -> dict:
                 'required': True,
                 'default_setter': lambda doc: dcos_launch.util.set_from_env('AWS_REGION')}})
         if provider == 'onprem':
-            validator.schema.update(AWS_ONPREM_SCHEMA)
+            if platform == 'aws':
+                validator.schema.update(AWS_ONPREM_SCHEMA)
+    elif platform == 'gce':
+        validator.schema.update({
+            'zone': {
+                'type': 'string',
+                'required': True,
+                'default_setter': lambda doc: dcos_launch.util.set_from_env('GCE_REGION')}})
+        if provider == 'onprem':
+            validator.schema.update(GCE_ONPREM_SCHEMA)
     elif platform == 'azure':
         validator.schema.update({
             'azure_location': {
@@ -185,7 +194,7 @@ ONPREM_DEPLOY_COMMON_SCHEMA = {
     'platform': {
         'type': 'string',
         'required': True,
-        'allowed': ['aws']},
+        'allowed': ['aws', 'gce']},
     'installer_url': {
         'validator': validate_url,
         'type': 'string',
@@ -209,9 +218,9 @@ ONPREM_DEPLOY_COMMON_SCHEMA = {
         'type': 'string',
         # not required because machine image can be set directly
         'required': False,
-        'default': 'cent-os-7-prereqs',
+        'default': 'cent-os-7-dcos-prereqs',
         # TODO: This is AWS specific; move when support expands to other platforms
-        'allowed': list(dcos_test_utils.aws.OS_SSH_INFO.keys())},
+        'allowed': list(dcos_test_utils.aws.OS_SSH_INFO.keys()) + ['centos-7']},
     'ssh_user': {
         'required': True,
         'type': 'string',
@@ -253,3 +262,13 @@ AWS_ONPREM_SCHEMA = {
         'type': 'string',
         'required': True,
         'default': '0.0.0.0/0'}}
+
+GCE_ONPREM_SCHEMA = {
+    'machineType': {
+        'type': 'string',
+        'required': False,
+        'default': 'n1-standard-4'},
+    'sourceImage': {
+        'type': 'string',
+        'required': False,
+        'default': 'coreos-stable'}}
