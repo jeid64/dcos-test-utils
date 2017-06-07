@@ -1,0 +1,28 @@
+---
+launch_config_version: 1
+deployment_name: dcos-onprem-with-new-stack
+installer_url: https://downloads.dcos.io/dcos/testing/master/dcos_generate_config.sh
+platform: dad
+provider: onprem
+dcos_config:
+    cluster_name: My Awesome DC/OS
+    resolvers:
+        - 8.8.4.4
+        - 8.8.8.8
+    master_discovery: static
+    ip_detect_filename: ip-detect.sh
+    ip_detect_public_filename: ip-detect.sh
+    dcos_overlay_network:
+          vtep_subnet: 45.128.0.0/20
+          vtep_mac_oui: 68:B3:D5:00:00:00
+          overlays:
+            - name: dcos
+              subnet: 192.168.0.0/16
+              prefix: 24
+num_masters: 1
+num_private_agents: 1
+num_public_agents: 1
+dcos_url: http://jeid-6hu0-elasticl-ymqqgd1volfl-1004127335.us-west-2.elb.amazonaws.com
+marathon_json_filename: dcos-dad-marathon-app.json
+os_name: foobar
+ssh_user: root
