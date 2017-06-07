@@ -11,7 +11,7 @@ dcos_config:
         - 8.8.8.8
     master_discovery: static
     ip_detect_filename: ip-detect.sh
-    ip_detect_public_filename: ip-detect.sh
+    #ip_detect_public_filename: ip-detect.sh
     dcos_overlay_network:
           vtep_subnet: 45.128.0.0/20
           vtep_mac_oui: 68:B3:D5:00:00:00
@@ -26,3 +26,4 @@ dcos_url: http://jeid-6hu0-elasticl-ymqqgd1volfl-1004127335.us-west-2.elb.amazon
 marathon_json_filename: dcos-dad-marathon-app.json
 os_name: foobar
 ssh_user: root
+ssh_private_key_filename: /Users/julieneid/awskey.key

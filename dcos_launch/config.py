@@ -117,6 +117,8 @@ def get_validated_config(config_path: str) -> dict:
                 'type': 'string',
                 'required': True,
                 'default_setter': lambda doc: dcos_launch.util.set_from_env('AZURE_LOCATION')}})
+    elif platform == 'dad':
+        validator.schema.update(DAD_ONPREM_SCHEMA)
     else:
         raise NotImplementedError()
 
@@ -185,7 +187,7 @@ ONPREM_DEPLOY_COMMON_SCHEMA = {
     'platform': {
         'type': 'string',
         'required': True,
-        'allowed': ['aws']},
+        'allowed': ['aws', 'dad']},
     'installer_url': {
         'validator': validate_url,
         'type': 'string',
@@ -209,9 +211,9 @@ ONPREM_DEPLOY_COMMON_SCHEMA = {
         'type': 'string',
         # not required because machine image can be set directly
         'required': False,
-        'default': 'cent-os-7-prereqs',
+        'default': 'cent-os-7-prereqs',},
         # TODO: This is AWS specific; move when support expands to other platforms
-        'allowed': list(dcos_test_utils.aws.OS_SSH_INFO.keys())},
+        #'allowed': list(dcos_test_utils.aws.OS_SSH_INFO.keys())},
     'ssh_user': {
         'required': True,
         'type': 'string',
@@ -253,3 +255,12 @@ AWS_ONPREM_SCHEMA = {
         'type': 'string',
         'required': True,
         'default': '0.0.0.0/0'}}
+
+DAD_ONPREM_SCHEMA = {
+    'marathon_json_filename': {
+        'type': 'string',
+        'required': True},
+    'dcos_url': {
+        'type': 'string',
+        'required': True,
+        'default': '0.0.0.0'}}
