@@ -263,4 +263,12 @@ DAD_ONPREM_SCHEMA = {
     'dcos_url': {
         'type': 'string',
         'required': True,
-        'default': '0.0.0.0'}}
+        'default': '0.0.0.0'},
+    'agent_cpus': {
+        'type': 'integer',
+        'required': False,
+        'default': 2},
+    'agent_mem': {
+        'type': 'integer',
+        'required': False,
+        'default': 2000}}

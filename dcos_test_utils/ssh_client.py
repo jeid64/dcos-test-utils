@@ -135,4 +135,5 @@ class SshClient:
         self.get_home_dir(host, port)
 
     def add_ssh_user_to_docker_users(self, host: str, port: int=22):
+        self.command(host, ['sudo', 'groupadd', '-r', 'docker', '||', 'true', self.user], port=port)
         self.command(host, ['sudo', 'usermod', '-aG', 'docker', self.user], port=port)

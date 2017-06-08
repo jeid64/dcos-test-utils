@@ -42,12 +42,20 @@ class OnpremLauncher(dcos_launch.util.AbstractLauncher):
                 self.config['platform']))
 
     def get_onprem_cluster(self):
-        return dcos_test_utils.onprem.OnpremCluster.from_hosts(
-            ssh_client=self.get_ssh_client(),
-            hosts=self.get_bare_cluster_launcher().get_hosts(),
-            num_masters=int(self.config['num_masters']),
-            num_private_agents=int(self.config['num_private_agents']),
-            num_public_agents=int(self.config['num_public_agents']))
+        if self.config['platform'] == 'aws':
+            return dcos_test_utils.onprem.OnpremCluster.from_hosts(
+                ssh_client=self.get_ssh_client(),
+                hosts=self.get_bare_cluster_launcher().get_hosts(),
+                num_masters=int(self.config['num_masters']),
+                num_private_agents=int(self.config['num_private_agents']),
+                num_public_agents=int(self.config['num_public_agents']))
+        elif self.config['platform'] == 'dad':
+            return dcos_test_utils.onprem.OnpremCluster(
+                ssh_client=self.get_ssh_client(),
+                masters=self.config["master_ips"],
+                private_agents=self.config["private_agent_ips"],
+                public_agents=self.config["public_agent_ips"],
+                bootstrap_host=self.config["bootstrap_ip"])
 
     def get_completed_onprem_config(self, cluster: dcos_test_utils.onprem.OnpremCluster) -> dict:
         onprem_config = self.config['dcos_config']
@@ -98,6 +106,20 @@ class OnpremLauncher(dcos_launch.util.AbstractLauncher):
         for host in cluster.hosts:
             cluster.ssh_client.wait_for_ssh_connection(host.public_ip, self.config['ssh_port'])
 
+        # Mesos fails to auto detect the correct resources, so we force cpu+mem to be equal to Marathon.
+        #TODO this is so ugly.
+        if self.config['platform'] == 'dad':
+            for agent in cluster.private_agents:
+                mesos_resources = """'[{"type": "SCALAR", "name": "cpus", "scalar": {"value": %s}}, {"type": "SCALAR", "name": "mem", "scalar": {"value": %s}}, {"name":"ports","type":"RANGES","ranges": {"range": [{"begin": 1025, "end": 2180},{"begin": 2182, "end": 3887},{"begin": 3889, "end": 5049},{"begin": 5052, "end": 8079},{"begin": 8082, "end": 8180},{"begin": 8182, "end": 32000}]}}]'"""
+                mesos_resources = mesos_resources % (self.config["agent_cpus"], self.config["agent_mem"])
+                self.get_ssh_client().command(agent.public_ip, ['mkdir', "-p", "/var/lib/dcos/"])
+                self.get_ssh_client().command(agent.public_ip, ['echo', "MESOS_RESOURCES=" + mesos_resources, '>', "/var/lib/dcos/mesos-slave-common"])
+            for pub_agent in cluster.public_agents:
+                mesos_resources  = """'[{"type": "SCALAR", "name": "cpus", "scalar": {"value": %s}}, "role": "slave_public"}, {"type": "SCALAR", "name": "mem", "scalar": {"value": %s}, "role": "slave_public"}, {"ranges": {"range": [{"begin": 1, "end": 21}, {"begin": 23, "end": 5050}, {"begin": 5052, "end": 32000}]}, "type": "RANGES", "name": "ports", "role": "slave_public"}]'"""
+                mesos_resources = mesos_resources % (self.config["agent_cpus"], self.config["agent_mem"])
+                self.get_ssh_client().command(pub_agent.public_ip, ['mkdir', "-p", "/var/lib/dcos/"])
+                self.get_ssh_client().command(pub_agent.public_ip, ['echo', "MESOS_RESOURCES=" + mesos_resources, '>', "/var/lib/dcos/mesos-slave-common"])
+
         self.bootstrap_host = cluster.bootstrap_host.public_ip
         try:
             self.get_ssh_client().command(self.bootstrap_host, ['test', '-f', STATE_FILE])
@@ -138,6 +160,7 @@ class OnpremLauncher(dcos_launch.util.AbstractLauncher):
         """ returns host information stored in the config as
         well as the basic provider info
         """
+        self.get_bare_cluster_launcher().describe()
         cluster = self.get_onprem_cluster()
         extra_info = {
             'bootstrap_host': dcos_launch.util.convert_host_list([cluster.bootstrap_host])[0],
@@ -147,8 +170,9 @@ class OnpremLauncher(dcos_launch.util.AbstractLauncher):
         desc = copy.copy(self.config)
         desc.update(extra_info)
         # blackout unwanted fields
-        del desc['template_body']
-        del desc['template_parameters']
+        if self.config['platform'] == 'aws':
+            del desc['template_body']
+            del desc['template_parameters']
         return desc
 
     def delete(self):

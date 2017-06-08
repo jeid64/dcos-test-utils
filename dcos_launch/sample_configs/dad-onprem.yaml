@@ -19,11 +19,16 @@ dcos_config:
             - name: dcos
               subnet: 192.168.0.0/16
               prefix: 24
+    zk_super_credentials: super:dadsecret
+    zk_master_credentials: dcos-master:dadsecret1
+    zk_agent_credentials: dcos-agent:dadsecret2
 num_masters: 1
-num_private_agents: 1
+num_private_agents: 2
 num_public_agents: 1
 dcos_url: http://jeid-6hu0-elasticl-ymqqgd1volfl-1004127335.us-west-2.elb.amazonaws.com
 marathon_json_filename: dcos-dad-marathon-app.json
 os_name: foobar
 ssh_user: root
 ssh_private_key_filename: /Users/julieneid/awskey.key
+agent_cpus: 2
+agent_mem: 2000

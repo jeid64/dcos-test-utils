@@ -47,9 +47,10 @@ class OnpremCluster:
         self.private_agents = private_agents
         self.public_agents = public_agents
         self.bootstrap_host = bootstrap_host
-        assert all(h.private_ip for h in self.hosts), (
-            'All cluster hosts require a private IP. hosts: {}'.format(repr(self.hosts))
-        )
+        # TODO this was broken
+        #assert all(h.private_ip for h in self.hosts), (
+        #    'All cluster hosts require a private IP. hosts: {}'.format(repr(self.hosts))
+        #)
 
     def get_master_ips(self):
         return copy.copy(self.masters)
