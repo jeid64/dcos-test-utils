@@ -34,6 +34,8 @@ class BareClusterLauncher(dcos_launch.util.AbstractLauncher):
                 'id': "/" + self.config['deployment_name'] + "/" +"masters",
                 'instances': self.config['num_masters'],
             })
+            #master_json["container"]["docker"]["portMappings"] = [{"containerPort": 22, "hostPort": 0, "protocol": "tcp", "name": "ssh"}]
+            #master_json["labels"] = {"HAPROXY_0_GROUP": "external"}
             priv_agent_json = dict(app_json)
             priv_agent_json.update({
                 'id': "/" + self.config['deployment_name'] + "/" + "private-agents",
@@ -65,7 +67,9 @@ class BareClusterLauncher(dcos_launch.util.AbstractLauncher):
                 self.config["public_agent_ips"] = [Host(endpoint.ip, endpoint.ip) for endpoint in res_pub_agent]
                 self.config["bootstrap_ip"] = Host(res_bootstrap[0].ip, res_bootstrap[0].ip)
                 return self.config
-            except retrying.RetryError:
+            #except retrying.RetryError:
+            except:
+                log.error("Hit an error on deploy marathon apps. Deleting the stack.")
                 res = self.root_dcos_api.marathon.destroy_app_group("/" + self.config['deployment_name'], timeout=120)
 
         #template_parameters = {
