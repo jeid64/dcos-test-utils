@@ -82,16 +82,18 @@ class OnpremLauncher(dcos_launch.util.AbstractLauncher):
                 raise dcos_launch.util.LauncherError(
                     'InvalidDcosConfig', 'Cannot set *_filename and *_contents simultaneously!')
             onprem_config[new_key_name] = dcos_launch.util.read_file(onprem_config[key_name])
+            print ("swapped to " + new_key_name)
             del onprem_config[key_name]
         # set the simple default IP detect script if not provided
         # currently, only AWS is supported, but when support changes, this will have to update
-        if 'ip_detect_contents' not in onprem_config:
-            onprem_config['ip_detect_contents'] = pkg_resources.resource_string(
-                'dcos_test_utils', 'ip-detect/aws.sh').decode()
-        if 'ip_detect_public_contents' not in onprem_config:
-            # despite being almost identical aws_public.sh will crash the installer if not safely dumped
-            onprem_config['ip_detect_public_contents'] = yaml.dump(pkg_resources.resource_string(
-                'dcos_test_utils', 'ip-detect/aws_public.sh').decode())
+        if self.config['platform'] == 'aws':
+            if 'ip_detect_contents' not in onprem_config:
+                onprem_config['ip_detect_contents'] = pkg_resources.resource_string(
+                    'dcos_test_utils', 'ip-detect/aws.sh').decode()
+            if 'ip_detect_public_contents' not in onprem_config:
+                # despite being almost identical aws_public.sh will crash the installer if not safely dumped
+                onprem_config['ip_detect_public_contents'] = yaml.dump(pkg_resources.resource_string(
+                    'dcos_test_utils', 'ip-detect/aws_public.sh').decode())
         # For no good reason the installer uses 'ip_detect_script' instead of 'ip_detect_contents'
         onprem_config['ip_detect_script'] = onprem_config['ip_detect_contents']
         del onprem_config['ip_detect_contents']
