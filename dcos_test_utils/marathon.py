@@ -414,6 +414,37 @@ class Marathon(RetryCommonHttpErrorsMixin, ApiClientSession):
             raise Exception("Application destroy failed - operation was not "
                             "completed in {} seconds.".format(timeout))
 
+    def destroy_app_group(self, app_group_name, timeout=120):
+        """Remove a marathon app
+
+        Abort the test if the removal was unsuccessful.
+
+        Args:
+            app_name: name of the application to remove
+            timeout: seconds to wait for destruction before failing test
+        """
+        @retrying.retry(wait_fixed=5000, stop_max_delay=timeout * 1000,
+                        retry_on_result=lambda ret: not ret,
+                        retry_on_exception=lambda x: False)
+        def _destroy_complete(deployment_id):
+            r = self.get('v2/deployments')
+            r.raise_for_status()
+
+            for deployment in r.json():
+                if deployment_id == deployment.get('id'):
+                    log.info('Waiting for application to be destroyed')
+                    return False
+            log.info('Application destroyed')
+            return True
+
+        r = self.delete(path_join('v2/groups', app_group_name))
+        r.raise_for_status()
+
+        try:
+            _destroy_complete(r.json()['deploymentId'])
+        except retrying.RetryError:
+            raise Exception("Application destroy failed - operation was not "
+                            "completed in {} seconds.".format(timeout))
     @contextmanager
     def deploy_and_cleanup(self, app_definition, timeout=120, check_health=True, ignore_failed_tasks=False):
         yield self.deploy_app(

@@ -31,26 +31,28 @@ class BareClusterLauncher(dcos_launch.util.AbstractLauncher):
             app_json = json.load(data_file)
             master_json = dict(app_json)
             master_json.update({
-                'id': self.config['deployment_name'] + "-masters",
+                'id': "/" + self.config['deployment_name'] + "/" +"masters",
                 'instances': self.config['num_masters'],
             })
+            #master_json["container"]["docker"]["portMappings"] = [{"containerPort": 22, "hostPort": 0, "protocol": "tcp", "name": "ssh"}]
+            #master_json["labels"] = {"HAPROXY_0_GROUP": "external"}
             priv_agent_json = dict(app_json)
             priv_agent_json.update({
-                'id': self.config['deployment_name'] + "-private-agents",
+                'id': "/" + self.config['deployment_name'] + "/" + "private-agents",
                 'instances': self.config['num_private_agents'],
                 'cpus': self.config['agent_cpus'],
                 'mem': self.config['agent_mem']
             })
             pub_agent_json = dict(app_json)
             pub_agent_json.update({
-                'id': self.config['deployment_name'] + "-public-agents",
+                'id': "/" + self.config['deployment_name'] + "/" + "public-agents",
                 'instances': self.config['num_public_agents'],
                 'cpus': self.config['agent_cpus'],
                 'mem': self.config['agent_mem']
             })
             bootstrap_json = dict(app_json)
             bootstrap_json.update({
-                'id': self.config['deployment_name'] + "-bootstrap",
+                'id': "/" + self.config['deployment_name'] + "/" + "bootstrap",
                 'instances': 1,
                 'cpus': 1,
                 'mem': 512
@@ -65,11 +67,10 @@ class BareClusterLauncher(dcos_launch.util.AbstractLauncher):
                 self.config["public_agent_ips"] = [Host(endpoint.ip, endpoint.ip) for endpoint in res_pub_agent]
                 self.config["bootstrap_ip"] = Host(res_bootstrap[0].ip, res_bootstrap[0].ip)
                 return self.config
-            except retrying.RetryError:
-                res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-masters", timeout=120)
-                res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-private-agents", timeout=120)
-                res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-public-agents", timeout=120)
-                res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-bootstrap", timeout=120)
+            #except retrying.RetryError:
+            except:
+                log.error("Hit an error on deploy marathon apps. Deleting the stack.")
+                res = self.root_dcos_api.marathon.destroy_app_group("/" + self.config['deployment_name'], timeout=120)
 
         #template_parameters = {
         #    'AllowAccessFrom': self.config['admin_location'],
@@ -106,10 +107,8 @@ class BareClusterLauncher(dcos_launch.util.AbstractLauncher):
     #    raise NotImplementedError('Bare clusters cannot be tested!')
 
     def delete(self):
-        res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-masters", timeout=120)
-        res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-private-agents", timeout=120)
-        res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-public-agents", timeout=120)
-        res = self.root_dcos_api.marathon.destroy_app(self.config['deployment_name'] + "-bootstrap", timeout=120)
+        # We can just delete the folder, it'll recursively delete everything else.
+        res = self.root_dcos_api.marathon.destroy_app_group("/" + self.config['deployment_name'], timeout=120)
 
     def wait(self):
         # actually should wait until SSH is up
