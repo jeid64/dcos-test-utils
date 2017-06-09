@@ -117,7 +117,7 @@ class OnpremLauncher(dcos_launch.util.AbstractLauncher):
                 self.get_ssh_client().command(agent.public_ip, ['mkdir', "-p", "/var/lib/dcos/"])
                 self.get_ssh_client().command(agent.public_ip, ['echo', "MESOS_RESOURCES=" + mesos_resources, '>', "/var/lib/dcos/mesos-slave-common"])
             for pub_agent in cluster.public_agents:
-                mesos_resources  = """'[{"type": "SCALAR", "name": "cpus", "scalar": {"value": %s}}, "role": "slave_public"}, {"type": "SCALAR", "name": "mem", "scalar": {"value": %s}, "role": "slave_public"}, {"ranges": {"range": [{"begin": 1, "end": 21}, {"begin": 23, "end": 5050}, {"begin": 5052, "end": 32000}]}, "type": "RANGES", "name": "ports", "role": "slave_public"}]'"""
+                mesos_resources  = """'[{"type": "SCALAR", "name": "cpus", "scalar": {"value": %s}, "role": "slave_public"}, {"type": "SCALAR", "name": "mem", "scalar": {"value": %s}, "role": "slave_public"}, {"ranges": {"range": [{"begin": 1, "end": 21}, {"begin": 23, "end": 5050}, {"begin": 5052, "end": 32000}]}, "type": "RANGES", "name": "ports", "role": "slave_public"}]'"""
                 mesos_resources = mesos_resources % (self.config["agent_cpus"], self.config["agent_mem"])
                 self.get_ssh_client().command(pub_agent.public_ip, ['mkdir', "-p", "/var/lib/dcos/"])
                 self.get_ssh_client().command(pub_agent.public_ip, ['echo', "MESOS_RESOURCES=" + mesos_resources, '>', "/var/lib/dcos/mesos-slave-common"])
