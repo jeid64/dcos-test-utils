@@ -5,7 +5,7 @@ boto3
 botocore
 cerberus
 docopt
-requests
+requests==2.14.1
 retrying
 tox
 pyinstaller==3.2
