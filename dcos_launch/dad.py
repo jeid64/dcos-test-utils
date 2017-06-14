@@ -34,8 +34,8 @@ class BareClusterLauncher(dcos_launch.util.AbstractLauncher):
                 'id': "/" + self.config['deployment_name'] + "/" +"masters",
                 'instances': self.config['num_masters'],
             })
-            #master_json["container"]["docker"]["portMappings"] = [{"containerPort": 22, "hostPort": 0, "protocol": "tcp", "name": "ssh"}]
-            #master_json["labels"] = {"HAPROXY_0_GROUP": "external"}
+            master_json["container"]["docker"]["portMappings"] = [{"containerPort": 443, "hostPort": 0, "protocol": "tcp", "name": "ssh"}]
+            master_json["labels"] = {"HAPROXY_0_GROUP": "external"}
             priv_agent_json = dict(app_json)
             priv_agent_json.update({
                 'id': "/" + self.config['deployment_name'] + "/" + "private-agents",
